@@ -53,8 +53,8 @@ import (
 	"strconv"
 	"strings"
 
-	gensupport "google.golang.org/api/gensupport"
 	googleapi "google.golang.org/api/googleapi"
+	gensupport "google.golang.org/api/internal/gensupport"
 	option "google.golang.org/api/option"
 	htransport "google.golang.org/api/transport/http"
 )
@@ -256,9 +256,9 @@ type Action struct {
 
 	// Environment: The environment to pass into the container. This
 	// environment is merged
-	// with any values specified in the `Pipeline` message. These
-	// values
-	// overwrite any in the `Pipeline` message.
+	// with values specified in the
+	// google.genomics.v2alpha1.Pipeline
+	// message, overwriting any duplicate values.
 	//
 	// In addition to the values passed here, a few other values
 	// are
@@ -301,7 +301,9 @@ type Action struct {
 	// already
 	// failed. This is useful for actions that copy output files off of the
 	// VM
-	// or for debugging.
+	// or for debugging. Note that no actions will be run if
+	// image
+	// prefetching fails.
 	//   "ENABLE_FUSE" - Enable access to the FUSE device for this action.
 	// Filesystems can then
 	// be mounted into disks shared with other actions. The other actions
@@ -335,14 +337,30 @@ type Action struct {
 	// flag disables this functionality.
 	Flags []string `json:"flags,omitempty"`
 
-	// ImageUri: The URI to pull the container image from. Note that all
-	// images referenced
+	// ImageUri: Required. The URI to pull the container image from. Note
+	// that all images referenced
 	// by actions in the pipeline are pulled before the first action runs.
 	// If
 	// multiple actions reference the same image, it is only pulled
 	// once,
 	// ensuring that the same image is used for all actions in a single
 	// pipeline.
+	//
+	// The image URI can be either a complete host and image specification
+	// (e.g.,
+	// quay.io/biocontainers/samtools), a library and image name
+	// (e.g.,
+	// google/cloud-sdk) or a bare image name ('bash') to pull from the
+	// default
+	// library.  No schema is required in any of these cases.
+	//
+	// If the specified image is not public, the service account specified
+	// for
+	// the Virtual Machine must have access to pull the images from GCR,
+	// or
+	// appropriate credentials must be specified in
+	// the
+	// google.genomics.v2alpha1.Action.credentials field.
 	ImageUri string `json:"imageUri,omitempty"`
 
 	// Labels: Labels to associate with the action. This field is provided
@@ -385,7 +403,7 @@ type Action struct {
 	// name
 	// must contain only upper and lowercase alphanumeric characters and
 	// hypens
-	// and cannot start with a hypen.
+	// and cannot start with a hyphen.
 	Name string `json:"name,omitempty"`
 
 	// PidNamespace: An optional identifier for a PID namespace to run the
@@ -743,7 +761,7 @@ type Disk struct {
 	// into
 	// actions. The name must contain only upper and lowercase
 	// alphanumeric
-	// characters and hypens and cannot start with a hypen.
+	// characters and hypens and cannot start with a hyphen.
 	Name string `json:"name,omitempty"`
 
 	// SizeGb: The size, in GB, of the disk to attach. If the size is
@@ -1580,7 +1598,7 @@ type RunPipelineRequest struct {
 	// see the appropriate resource message (for example, `VirtualMachine`).
 	Labels map[string]string `json:"labels,omitempty"`
 
-	// Pipeline: The description of the pipeline to run.
+	// Pipeline: Required. The description of the pipeline to run.
 	Pipeline *Pipeline `json:"pipeline,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "Labels") to
@@ -1694,7 +1712,8 @@ type ServiceAccount struct {
 
 	// Scopes: List of scopes to be enabled for this service account on the
 	// VM, in
-	// addition to the Cloud Genomics API scope.
+	// addition to the cloud-platform API scope that will be added by
+	// default.
 	Scopes []string `json:"scopes,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "Email") to
@@ -1724,81 +1743,14 @@ func (s *ServiceAccount) MarshalJSON() ([]byte, error) {
 // suitable for
 // different programming environments, including REST APIs and RPC APIs.
 // It is
-// used by [gRPC](https://github.com/grpc). The error model is designed
-// to be:
+// used by [gRPC](https://github.com/grpc). Each `Status` message
+// contains
+// three pieces of data: error code, error message, and error
+// details.
 //
-// - Simple to use and understand for most users
-// - Flexible enough to meet unexpected needs
-//
-// # Overview
-//
-// The `Status` message contains three pieces of data: error code,
-// error
-// message, and error details. The error code should be an enum value
-// of
-// google.rpc.Code, but it may accept additional error codes if needed.
-// The
-// error message should be a developer-facing English message that
-// helps
-// developers *understand* and *resolve* the error. If a localized
-// user-facing
-// error message is needed, put the localized message in the error
-// details or
-// localize it in the client. The optional error details may contain
-// arbitrary
-// information about the error. There is a predefined set of error
-// detail types
-// in the package `google.rpc` that can be used for common error
-// conditions.
-//
-// # Language mapping
-//
-// The `Status` message is the logical representation of the error
-// model, but it
-// is not necessarily the actual wire format. When the `Status` message
-// is
-// exposed in different client libraries and different wire protocols,
-// it can be
-// mapped differently. For example, it will likely be mapped to some
-// exceptions
-// in Java, but more likely mapped to some error codes in C.
-//
-// # Other uses
-//
-// The error model and the `Status` message can be used in a variety
-// of
-// environments, either with or without APIs, to provide a
-// consistent developer experience across different
-// environments.
-//
-// Example uses of this error model include:
-//
-// - Partial errors. If a service needs to return partial errors to the
-// client,
-//     it may embed the `Status` in the normal response to indicate the
-// partial
-//     errors.
-//
-// - Workflow errors. A typical workflow has multiple steps. Each step
-// may
-//     have a `Status` message for error reporting.
-//
-// - Batch operations. If a client uses batch request and batch
-// response, the
-//     `Status` message should be used directly inside batch response,
-// one for
-//     each error sub-response.
-//
-// - Asynchronous operations. If an API call embeds asynchronous
-// operation
-//     results in its response, the status of those operations should
-// be
-//     represented directly using the `Status` message.
-//
-// - Logging. If some API errors are stored in logs, the message
-// `Status` could
-//     be used directly after any stripping needed for security/privacy
-// reasons.
+// You can find out more about this error model and how to work with it
+// in the
+// [API Design Guide](https://cloud.google.com/apis/design/errors).
 type Status struct {
 	// Code: The status code, which should be an enum value of
 	// google.rpc.Code.
@@ -1936,17 +1888,22 @@ type VirtualMachine struct {
 
 	// Labels: Optional set of labels to apply to the VM and any attached
 	// disk resources.
-	// These labels must adhere to the name and value restrictions on VM
-	// labels
-	// imposed by Compute Engine.
+	// These labels must adhere to the [name and
+	// value
+	// restrictions](https://cloud.google.com/compute/docs/labeling-res
+	// ources) on
+	// VM labels imposed by Compute Engine.
+	//
+	// Labels keys with the prefix 'google-' are reserved for use by
+	// Google.
 	//
 	// Labels applied at creation time to the VM. Applied on a best-effort
 	// basis
 	// to attached disk resources shortly after VM creation.
 	Labels map[string]string `json:"labels,omitempty"`
 
-	// MachineType: The machine type of the virtual machine to create. Must
-	// be the short name
+	// MachineType: Required. The machine type of the virtual machine to
+	// create. Must be the short name
 	// of a standard machine type (such as "n1-standard-1") or a custom
 	// machine
 	// type (such as "custom-1-4096", where "1" indicates the number of
@@ -2009,6 +1966,9 @@ func (s *VirtualMachine) MarshalJSON() ([]byte, error) {
 type WorkerAssignedEvent struct {
 	// Instance: The worker's instance name.
 	Instance string `json:"instance,omitempty"`
+
+	// MachineType: The machine type that was assigned for the worker.
+	MachineType string `json:"machineType,omitempty"`
 
 	// Zone: The zone the worker is running in.
 	Zone string `json:"zone,omitempty"`
@@ -2119,7 +2079,15 @@ type PipelinesRunCall struct {
 	header_            http.Header
 }
 
-// Run: Runs a pipeline.
+// Run: Runs a pipeline.  The returned Operation's metadata field will
+// contain a
+// google.genomics.v2alpha1.Metadata object describing the status of
+// the
+// pipeline execution.  The [response] field will contain
+// a
+// google.genomics.v2alpha1.RunPipelineResponse object if the
+// pipeline
+// completes successfully.
 //
 // **Note:** Before you can use this method, the Genomics Service
 // Agent
@@ -2172,6 +2140,7 @@ func (c *PipelinesRunCall) Header() http.Header {
 
 func (c *PipelinesRunCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2232,7 +2201,7 @@ func (c *PipelinesRunCall) Do(opts ...googleapi.CallOption) (*Operation, error) 
 	}
 	return ret, nil
 	// {
-	//   "description": "Runs a pipeline.\n\n**Note:** Before you can use this method, the Genomics Service Agent\nmust have access to your project. This is done automatically when the\nCloud Genomics API is first enabled, but if you delete this permission,\nor if you enabled the Cloud Genomics API before the v2alpha1 API\nlaunch, you must disable and re-enable the API to grant the Genomics\nService Agent the required permissions.\nAuthorization requires the following [Google\nIAM](https://cloud.google.com/iam/) permission:\n\n* `genomics.operations.create`\n\n[1]: /genomics/gsa",
+	//   "description": "Runs a pipeline.  The returned Operation's metadata field will contain a\ngoogle.genomics.v2alpha1.Metadata object describing the status of the\npipeline execution.  The [response] field will contain a\ngoogle.genomics.v2alpha1.RunPipelineResponse object if the pipeline\ncompletes successfully.\n\n**Note:** Before you can use this method, the Genomics Service Agent\nmust have access to your project. This is done automatically when the\nCloud Genomics API is first enabled, but if you delete this permission,\nor if you enabled the Cloud Genomics API before the v2alpha1 API\nlaunch, you must disable and re-enable the API to grant the Genomics\nService Agent the required permissions.\nAuthorization requires the following [Google\nIAM](https://cloud.google.com/iam/) permission:\n\n* `genomics.operations.create`\n\n[1]: /genomics/gsa",
 	//   "flatPath": "v2alpha1/pipelines:run",
 	//   "httpMethod": "POST",
 	//   "id": "genomics.pipelines.run",
@@ -2311,6 +2280,7 @@ func (c *ProjectsOperationsCancelCall) Header() http.Header {
 
 func (c *ProjectsOperationsCancelCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2467,6 +2437,7 @@ func (c *ProjectsOperationsGetCall) Header() http.Header {
 
 func (c *ProjectsOperationsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2672,6 +2643,7 @@ func (c *ProjectsOperationsListCall) Header() http.Header {
 
 func (c *ProjectsOperationsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2846,6 +2818,7 @@ func (c *WorkersCheckInCall) Header() http.Header {
 
 func (c *WorkersCheckInCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}

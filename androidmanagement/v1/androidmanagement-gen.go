@@ -49,8 +49,8 @@ import (
 	"strconv"
 	"strings"
 
-	gensupport "google.golang.org/api/gensupport"
 	googleapi "google.golang.org/api/googleapi"
+	gensupport "google.golang.org/api/internal/gensupport"
 	option "google.golang.org/api/option"
 	htransport "google.golang.org/api/transport/http"
 )
@@ -300,8 +300,45 @@ func (s *ApiLevelCondition) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// AppTrackInfo: Id to name association of a app track.
+type AppTrackInfo struct {
+	// TrackAlias: The track name associated with the trackId, set in the
+	// Play Console. The name is modifiable from Play Console.
+	TrackAlias string `json:"trackAlias,omitempty"`
+
+	// TrackId: The unmodifiable unique track identifier, taken from the
+	// releaseTrackId in the URL of the Play Console page that displays the
+	// app’s track information.
+	TrackId string `json:"trackId,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "TrackAlias") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "TrackAlias") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *AppTrackInfo) MarshalJSON() ([]byte, error) {
+	type NoMethod AppTrackInfo
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 // Application: Information about an app.
 type Application struct {
+	// AppTracks: Application tracks visible to the enterprise.
+	AppTracks []*AppTrackInfo `json:"appTracks,omitempty"`
+
 	// ManagedProperties: The set of managed properties available to be
 	// pre-configured for the app.
 	ManagedProperties []*ManagedProperty `json:"managedProperties,omitempty"`
@@ -320,21 +357,20 @@ type Application struct {
 	// server.
 	googleapi.ServerResponse `json:"-"`
 
-	// ForceSendFields is a list of field names (e.g. "ManagedProperties")
-	// to unconditionally include in API requests. By default, fields with
+	// ForceSendFields is a list of field names (e.g. "AppTracks") to
+	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "ManagedProperties") to
-	// include in API requests with the JSON null value. By default, fields
-	// with empty values are omitted from API requests. However, any field
-	// with an empty value appearing in NullFields will be sent to the
-	// server as null. It is an error if a field in this list has a
-	// non-empty value. This may be used to include null fields in Patch
-	// requests.
+	// NullFields is a list of field names (e.g. "AppTracks") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
 	NullFields []string `json:"-"`
 }
 
@@ -426,6 +462,14 @@ func (s *ApplicationPermission) MarshalJSON() ([]byte, error) {
 
 // ApplicationPolicy: Policy for an individual app.
 type ApplicationPolicy struct {
+	// AccessibleTrackIds: List of the app’s track IDs that a device
+	// belonging to the enterprise can access. If the list contains multiple
+	// track IDs, devices receive the latest version among all accessible
+	// tracks. If the list contains no track IDs, devices only have access
+	// to the app’s production track. More details about each track are
+	// available in AppTrackInfo.
+	AccessibleTrackIds []string `json:"accessibleTrackIds,omitempty"`
+
 	// DefaultPermissionPolicy: The default policy for all permissions
 	// requested by the app. If specified, this overrides the policy-level
 	// default_permission_policy which applies to all apps. It does not
@@ -474,10 +518,17 @@ type ApplicationPolicy struct {
 	//   "REQUIRED_FOR_SETUP" - The app is automatically installed and can't
 	// be removed by the user and will prevent setup from completion until
 	// installation is complete.
+	//   "KIOSK" - The app is automatically installed in kiosk mode: it's
+	// set as the preferred home intent and whitelisted for lock task mode.
+	// Device setup won't complete until the app is installed. After
+	// installation, users won't be able to remove the app. You can only set
+	// this installType for one app per policy. When this is present in the
+	// policy, status bar will be automatically disabled.
 	InstallType string `json:"installType,omitempty"`
 
 	// LockTaskAllowed: Whether the app is allowed to lock itself in
-	// full-screen mode.
+	// full-screen mode. DEPRECATED. Use InstallType KIOSK or
+	// kioskCustomLauncherEnabled to to configure a dedicated device.
 	LockTaskAllowed bool `json:"lockTaskAllowed,omitempty"`
 
 	// ManagedConfiguration: Managed configuration applied to the app. The
@@ -518,19 +569,18 @@ type ApplicationPolicy struct {
 	// permission_grants which apply to all apps.
 	PermissionGrants []*PermissionGrant `json:"permissionGrants,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g.
-	// "DefaultPermissionPolicy") to unconditionally include in API
-	// requests. By default, fields with empty values are omitted from API
-	// requests. However, any non-pointer, non-interface field appearing in
-	// ForceSendFields will be sent to the server regardless of whether the
-	// field is empty or not. This may be used to include empty fields in
-	// Patch requests.
+	// ForceSendFields is a list of field names (e.g. "AccessibleTrackIds")
+	// to unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "DefaultPermissionPolicy")
-	// to include in API requests with the JSON null value. By default,
-	// fields with empty values are omitted from API requests. However, any
-	// field with an empty value appearing in NullFields will be sent to the
+	// NullFields is a list of field names (e.g. "AccessibleTrackIds") to
+	// include in API requests with the JSON null value. By default, fields
+	// with empty values are omitted from API requests. However, any field
+	// with an empty value appearing in NullFields will be sent to the
 	// server as null. It is an error if a field in this list has a
 	// non-empty value. This may be used to include null fields in Patch
 	// requests.
@@ -996,6 +1046,10 @@ type Device struct {
 	// chronological order.
 	PreviousDeviceNames []string `json:"previousDeviceNames,omitempty"`
 
+	// SecurityPosture: Device's security posture value that reflects how
+	// secure the device is.
+	SecurityPosture *SecurityPosture `json:"securityPosture,omitempty"`
+
 	// SoftwareInfo: Detailed information about the device software. This
 	// information is only available if softwareInfoEnabled is true in the
 	// device's policy.
@@ -1019,7 +1073,8 @@ type Device struct {
 	State string `json:"state,omitempty"`
 
 	// SystemProperties: Map of selected system properties name and value
-	// related to the device.
+	// related to the device. This information is only available if
+	// systemPropertiesEnabled is true in the device's policy.
 	SystemProperties map[string]string `json:"systemProperties,omitempty"`
 
 	// User: The user who owns the device.
@@ -1834,6 +1889,7 @@ type ManagedProperty struct {
 	//   "HIDDEN" - A hidden restriction of string type (the default value
 	// can be used to pass along information that can't be modified, such as
 	// a version code).
+	//   "BUNDLE" - A bundle of properties
 	//   "BUNDLE_ARRAY" - An array of property bundles.
 	Type string `json:"type,omitempty"`
 
@@ -2343,9 +2399,10 @@ type PasswordRequirements struct {
 	// characters.
 	//   "ALPHANUMERIC" - The password must contain both numeric and
 	// alphabetic (or symbol) characters.
-	//   "COMPLEX" - The password must contain at least a letter, a
-	// numerical digit and a special symbol. Other password constraints, for
-	// example, password_minimum_letters are enforced.
+	//   "COMPLEX" - The password must meet the minimum requirements
+	// specified in passwordMinimumLength, passwordMinimumLetters,
+	// passwordMinimumSymbols, etc. For example, if passwordMinimumSymbols
+	// is 2, the password must contain at least two symbols.
 	PasswordQuality string `json:"passwordQuality,omitempty"`
 
 	// PasswordScope: The scope that the password requirement applies to.
@@ -2428,7 +2485,8 @@ func (s *PermissionGrant) MarshalJSON() ([]byte, error) {
 }
 
 // PersistentPreferredActivity: A default activity for handling intents
-// that match a particular intent filter.
+// that match a particular intent filter. Note: To set up a kiosk, use
+// InstallType to KIOSK rather than use persistent preferred activities.
 type PersistentPreferredActivity struct {
 	// Actions: The intent actions to match in the filter. If any actions
 	// are included in the filter, then an intent's action must be one of
@@ -2473,7 +2531,7 @@ func (s *PersistentPreferredActivity) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
-// Policy: A policy resources represents a group settings that govern
+// Policy: A policy resource represents a group of settings that govern
 // the behavior of a managed device and the apps installed on it.
 type Policy struct {
 	// AccountTypesWithManagementDisabled: Account types that can't be
@@ -2645,10 +2703,14 @@ type Policy struct {
 	// secure keyguard screens.
 	//   "TRUST_AGENTS" - Ignore trust agent state on secure keyguard
 	// screens.
-	//   "DISABLE_FINGERPRINT" - Disable fingerprint sensor on keyguard
-	// secure screens.
+	//   "DISABLE_FINGERPRINT" - Disable fingerprint sensor on secure
+	// keyguard screens.
 	//   "DISABLE_REMOTE_INPUT" - Disable text entry into notifications on
 	// secure keyguard screens.
+	//   "FACE" - Disable face authentication on secure keyguard screens.
+	//   "IRIS" - Disable iris authentication on secure keyguard screens.
+	//   "BIOMETRICS" - Disable all biometric authentication on secure
+	// keyguard screens.
 	//   "ALL_FEATURES" - Disable all current and future keyguard
 	// customizations.
 	KeyguardDisabledFeatures []string `json:"keyguardDisabledFeatures,omitempty"`
@@ -2656,9 +2718,8 @@ type Policy struct {
 	// KioskCustomLauncherEnabled: Whether the kiosk custom launcher is
 	// enabled. This replaces the home screen with a launcher that locks
 	// down the device to the apps installed via the applications setting.
-	// The apps appear on a single page in alphabetical order. It is
-	// recommended to also use status_bar_disabled to block access to device
-	// settings.
+	// Apps appear on a single page in alphabetical order. The status bar is
+	// disabled when this is set.
 	KioskCustomLauncherEnabled bool `json:"kioskCustomLauncherEnabled,omitempty"`
 
 	// LocationMode: The degree of location detection enabled. The user may
@@ -2740,6 +2801,14 @@ type Policy struct {
 	// all apps. These values override the default_permission_policy.
 	PermissionGrants []*PermissionGrant `json:"permissionGrants,omitempty"`
 
+	// PermittedAccessibilityServices: Specifies permitted accessibility
+	// services. If the field is not set, any accessibility service can be
+	// used. If the field is set, only the accessibility services in this
+	// list and the system's built-in accessibility service can be used. In
+	// particular, if the field is set to empty, only the system's built-in
+	// accessibility servicess can be used.
+	PermittedAccessibilityServices *PackageNameList `json:"permittedAccessibilityServices,omitempty"`
+
 	// PermittedInputMethods: If present, only the input methods provided by
 	// packages in this list are permitted. If this field is present, but
 	// the list is empty, then only system input methods are permitted.
@@ -2817,7 +2886,9 @@ type Policy struct {
 
 	// StatusBarDisabled: Whether the status bar is disabled. This disables
 	// notifications, quick settings, and other screen overlays that allow
-	// escape from full-screen mode.
+	// escape from full-screen mode. DEPRECATED. To disable the status bar
+	// on a kiosk device, use InstallType KIOSK or
+	// kioskCustomLauncherEnabled.
 	StatusBarDisabled bool `json:"statusBarDisabled,omitempty"`
 
 	// StatusReportingSettings: Status reporting settings
@@ -2944,6 +3015,47 @@ func (s *PolicyEnforcementRule) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// PostureDetail: Additional details regarding the security posture of
+// the device.
+type PostureDetail struct {
+	// Advice: Corresponding admin-facing advice to mitigate this security
+	// risk and improve the security posture of the device.
+	Advice []*UserFacingMessage `json:"advice,omitempty"`
+
+	// SecurityRisk: A specific security risk that negatively affects the
+	// security posture of the device.
+	//
+	// Possible values:
+	//   "SECURITY_RISK_UNSPECIFIED" - Unspecified.
+	//   "UNKNOWN_OS" - SafetyNet detects that the device is running an
+	// unknown OS (basicIntegrity check succeeds but ctsProfileMatch fails).
+	//   "COMPROMISED_OS" - SafetyNet detects that the device is running a
+	// compromised OS (basicIntegrity check fails).
+	SecurityRisk string `json:"securityRisk,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Advice") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Advice") to include in API
+	// requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *PostureDetail) MarshalJSON() ([]byte, error) {
+	type NoMethod PostureDetail
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 // PowerManagementEvent: A power management event.
 type PowerManagementEvent struct {
 	// BatteryLevel: For BATTERY_LEVEL_COLLECTED events, the battery level
@@ -3040,6 +3152,48 @@ type ProxyInfo struct {
 
 func (s *ProxyInfo) MarshalJSON() ([]byte, error) {
 	type NoMethod ProxyInfo
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// SecurityPosture: The security posture of the device, as determined by
+// the current device state and the policies applied.
+type SecurityPosture struct {
+	// DevicePosture: Device's security posture value.
+	//
+	// Possible values:
+	//   "POSTURE_UNSPECIFIED" - Unspecified. There is no posture detail for
+	// this posture value.
+	//   "SECURE" - This device is secure.
+	//   "AT_RISK" - This device may be more vulnerable to malicious actors
+	// than is recommended for use with corporate data.
+	//   "POTENTIALLY_COMPROMISED" - This device may be compromised and
+	// corporate data may be accessible to unauthorized actors.
+	DevicePosture string `json:"devicePosture,omitempty"`
+
+	// PostureDetails: Additional details regarding the security posture of
+	// the device.
+	PostureDetails []*PostureDetail `json:"postureDetails,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "DevicePosture") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "DevicePosture") to include
+	// in API requests with the JSON null value. By default, fields with
+	// empty values are omitted from API requests. However, any field with
+	// an empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *SecurityPosture) MarshalJSON() ([]byte, error) {
+	type NoMethod SecurityPosture
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -3229,43 +3383,11 @@ func (s *SoftwareInfo) MarshalJSON() ([]byte, error) {
 
 // Status: The Status type defines a logical error model that is
 // suitable for different programming environments, including REST APIs
-// and RPC APIs. It is used by gRPC (https://github.com/grpc). The error
-// model is designed to be:
-// Simple to use and understand for most users
-// Flexible enough to meet unexpected needsOverviewThe Status message
-// contains three pieces of data: error code, error message, and error
-// details. The error code should be an enum value of google.rpc.Code,
-// but it may accept additional error codes if needed. The error message
-// should be a developer-facing English message that helps developers
-// understand and resolve the error. If a localized user-facing error
-// message is needed, put the localized message in the error details or
-// localize it in the client. The optional error details may contain
-// arbitrary information about the error. There is a predefined set of
-// error detail types in the package google.rpc that can be used for
-// common error conditions.Language mappingThe Status message is the
-// logical representation of the error model, but it is not necessarily
-// the actual wire format. When the Status message is exposed in
-// different client libraries and different wire protocols, it can be
-// mapped differently. For example, it will likely be mapped to some
-// exceptions in Java, but more likely mapped to some error codes in
-// C.Other usesThe error model and the Status message can be used in a
-// variety of environments, either with or without APIs, to provide a
-// consistent developer experience across different environments.Example
-// uses of this error model include:
-// Partial errors. If a service needs to return partial errors to the
-// client, it may embed the Status in the normal response to indicate
-// the partial errors.
-// Workflow errors. A typical workflow has multiple steps. Each step may
-// have a Status message for error reporting.
-// Batch operations. If a client uses batch request and batch response,
-// the Status message should be used directly inside batch response, one
-// for each error sub-response.
-// Asynchronous operations. If an API call embeds asynchronous operation
-// results in its response, the status of those operations should be
-// represented directly using the Status message.
-// Logging. If some API errors are stored in logs, the message Status
-// could be used directly after any stripping needed for
-// security/privacy reasons.
+// and RPC APIs. It is used by gRPC (https://github.com/grpc). Each
+// Status message contains three pieces of data: error code, error
+// message, and error details.You can find out more about this error
+// model and how to work with it in the API Design Guide
+// (https://cloud.google.com/apis/design/errors).
 type Status struct {
 	// Code: The status code, which should be an enum value of
 	// google.rpc.Code.
@@ -3334,6 +3456,10 @@ type StatusReportingSettings struct {
 
 	// SoftwareInfoEnabled: Whether software info reporting is enabled.
 	SoftwareInfoEnabled bool `json:"softwareInfoEnabled,omitempty"`
+
+	// SystemPropertiesEnabled: Whether system properties reporting is
+	// enabled.
+	SystemPropertiesEnabled bool `json:"systemPropertiesEnabled,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g.
 	// "ApplicationReportingSettings") to unconditionally include in API
@@ -3555,8 +3681,8 @@ type WebApp struct {
 	// amongst a list of other applications, or as a label for an icon).
 	Title string `json:"title,omitempty"`
 
-	// VersionCode: The current version of the app.<p>Note that the version
-	// can automatically increase during the lifetime of the web app, while
+	// VersionCode: The current version of the app.Note that the version can
+	// automatically increase during the lifetime of the web app, while
 	// Google does internal housekeeping to keep the web app up-to-date.
 	VersionCode int64 `json:"versionCode,omitempty,string"`
 
@@ -3622,6 +3748,29 @@ func (s *WebAppIcon) MarshalJSON() ([]byte, error) {
 
 // WebToken: A web token used to access the managed Google Play iframe.
 type WebToken struct {
+	// EnabledFeatures: The features to enable. Use this if you want to
+	// control exactly which feature(s) will be activated; leave empty to
+	// allow all features.Restrictions / things to note: <ul> <li> If no
+	// features are listed here, all features are enabled — this is the
+	// default behavior where you give access to all features to your
+	// admins. <li> This must not contain any FEATURE_UNSPECIFIED values.
+	// <li> Repeated values are ignored </ul>
+	//
+	// Possible values:
+	//   "FEATURE_UNSPECIFIED" - Unspecified feature.
+	//   "PLAY_SEARCH" - The Managed Play search apps page
+	// (https://developers.google.com/android/management/apps#search-apps).
+	//   "PRIVATE_APPS" - The private apps page
+	// (https://developers.google.com/android/management/apps#private-apps).
+	//   "WEB_APPS" - The Web Apps page
+	// (https://developers.google.com/android/management/apps#web-apps).
+	//   "STORE_BUILDER" - The organize apps page
+	// (https://developers.google.com/android/management/apps#organize-apps).
+	//   "MANAGED_CONFIGURATIONS" - The managed configurations page
+	// (https://developers.google.com/android/management/managed-configuratio
+	// ns-iframe).
+	EnabledFeatures []string `json:"enabledFeatures,omitempty"`
+
 	// Name: The name of the web token, which is generated by the server
 	// during creation in the form
 	// enterprises/{enterpriseId}/webTokens/{webTokenId}.
@@ -3634,6 +3783,7 @@ type WebToken struct {
 
 	// Permissions: Permissions available to an admin in the embedded UI. An
 	// admin must have all of these permissions in order to view the UI.
+	// This field is deprecated.
 	//
 	// Possible values:
 	//   "WEB_TOKEN_PERMISSION_UNSPECIFIED" - This value is ignored.
@@ -3649,7 +3799,7 @@ type WebToken struct {
 	// server.
 	googleapi.ServerResponse `json:"-"`
 
-	// ForceSendFields is a list of field names (e.g. "Name") to
+	// ForceSendFields is a list of field names (e.g. "EnabledFeatures") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -3657,12 +3807,13 @@ type WebToken struct {
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "Name") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
+	// NullFields is a list of field names (e.g. "EnabledFeatures") to
+	// include in API requests with the JSON null value. By default, fields
+	// with empty values are omitted from API requests. However, any field
+	// with an empty value appearing in NullFields will be sent to the
+	// server as null. It is an error if a field in this list has a
+	// non-empty value. This may be used to include null fields in Patch
+	// requests.
 	NullFields []string `json:"-"`
 }
 
@@ -3773,6 +3924,7 @@ func (c *EnterprisesCreateCall) Header() http.Header {
 
 func (c *EnterprisesCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -3924,6 +4076,7 @@ func (c *EnterprisesGetCall) Header() http.Header {
 
 func (c *EnterprisesGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -4066,6 +4219,7 @@ func (c *EnterprisesPatchCall) Header() http.Header {
 
 func (c *EnterprisesPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -4229,6 +4383,7 @@ func (c *EnterprisesApplicationsGetCall) Header() http.Header {
 
 func (c *EnterprisesApplicationsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -4378,6 +4533,7 @@ func (c *EnterprisesDevicesDeleteCall) Header() http.Header {
 
 func (c *EnterprisesDevicesDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -4529,6 +4685,7 @@ func (c *EnterprisesDevicesGetCall) Header() http.Header {
 
 func (c *EnterprisesDevicesGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -4665,6 +4822,7 @@ func (c *EnterprisesDevicesIssueCommandCall) Header() http.Header {
 
 func (c *EnterprisesDevicesIssueCommandCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -4827,6 +4985,7 @@ func (c *EnterprisesDevicesListCall) Header() http.Header {
 
 func (c *EnterprisesDevicesListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5001,6 +5160,7 @@ func (c *EnterprisesDevicesPatchCall) Header() http.Header {
 
 func (c *EnterprisesDevicesPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5153,6 +5313,7 @@ func (c *EnterprisesDevicesOperationsCancelCall) Header() http.Header {
 
 func (c *EnterprisesDevicesOperationsCancelCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5285,6 +5446,7 @@ func (c *EnterprisesDevicesOperationsDeleteCall) Header() http.Header {
 
 func (c *EnterprisesDevicesOperationsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5427,6 +5589,7 @@ func (c *EnterprisesDevicesOperationsGetCall) Header() http.Header {
 
 func (c *EnterprisesDevicesOperationsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5600,6 +5763,7 @@ func (c *EnterprisesDevicesOperationsListCall) Header() http.Header {
 
 func (c *EnterprisesDevicesOperationsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5771,6 +5935,7 @@ func (c *EnterprisesEnrollmentTokensCreateCall) Header() http.Header {
 
 func (c *EnterprisesEnrollmentTokensCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5909,6 +6074,7 @@ func (c *EnterprisesEnrollmentTokensDeleteCall) Header() http.Header {
 
 func (c *EnterprisesEnrollmentTokensDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6039,6 +6205,7 @@ func (c *EnterprisesPoliciesDeleteCall) Header() http.Header {
 
 func (c *EnterprisesPoliciesDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6179,6 +6346,7 @@ func (c *EnterprisesPoliciesGetCall) Header() http.Header {
 
 func (c *EnterprisesPoliciesGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6336,6 +6504,7 @@ func (c *EnterprisesPoliciesListCall) Header() http.Header {
 
 func (c *EnterprisesPoliciesListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6510,6 +6679,7 @@ func (c *EnterprisesPoliciesPatchCall) Header() http.Header {
 
 func (c *EnterprisesPoliciesPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6655,6 +6825,7 @@ func (c *EnterprisesWebAppsCreateCall) Header() http.Header {
 
 func (c *EnterprisesWebAppsCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6792,6 +6963,7 @@ func (c *EnterprisesWebAppsDeleteCall) Header() http.Header {
 
 func (c *EnterprisesWebAppsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6932,6 +7104,7 @@ func (c *EnterprisesWebAppsGetCall) Header() http.Header {
 
 func (c *EnterprisesWebAppsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7089,6 +7262,7 @@ func (c *EnterprisesWebAppsListCall) Header() http.Header {
 
 func (c *EnterprisesWebAppsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7263,6 +7437,7 @@ func (c *EnterprisesWebAppsPatchCall) Header() http.Header {
 
 func (c *EnterprisesWebAppsPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7409,6 +7584,7 @@ func (c *EnterprisesWebTokensCreateCall) Header() http.Header {
 
 func (c *EnterprisesWebTokensCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7563,6 +7739,7 @@ func (c *SignupUrlsCreateCall) Header() http.Header {
 
 func (c *SignupUrlsCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}

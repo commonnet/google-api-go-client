@@ -53,8 +53,8 @@ import (
 	"strconv"
 	"strings"
 
-	gensupport "google.golang.org/api/gensupport"
 	googleapi "google.golang.org/api/googleapi"
+	gensupport "google.golang.org/api/internal/gensupport"
 	option "google.golang.org/api/option"
 	htransport "google.golang.org/api/transport/http"
 )
@@ -755,10 +755,6 @@ type BatchEnableServicesRequest struct {
 	// with
 	// the user enabling the service.
 	//
-	// Two or more services must be specified. To enable a single
-	// service,
-	// use the `EnableService` method instead.
-	//
 	// A single request can enable a maximum of 20 services at a time. If
 	// more
 	// than 20 services are specified, the request will fail, and no state
@@ -1370,6 +1366,15 @@ type Documentation struct {
 	// order.
 	Rules []*DocumentationRule `json:"rules,omitempty"`
 
+	// ServiceRootUrl: Specifies the service root url if the default one
+	// (the service name
+	// from the yaml file) is not suitable. This can be seen in any
+	// fully
+	// specified service urls as well as sections that show a base that
+	// other
+	// urls are relative to.
+	ServiceRootUrl string `json:"serviceRootUrl,omitempty"`
+
 	// Summary: A short summary of what the service does. Can only be
 	// provided by
 	// plain text.
@@ -1786,6 +1791,48 @@ func (s *Field) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// GetServiceIdentityResponse: Response message for getting service
+// identity.
+type GetServiceIdentityResponse struct {
+	// Identity: Service identity that service producer can use to access
+	// consumer
+	// resources. If exists is true, it contains email and unique_id. If
+	// exists is
+	// false, it contains pre-constructed email and empty unique_id.
+	Identity *ServiceIdentity `json:"identity,omitempty"`
+
+	// State: Service identity state.
+	//
+	// Possible values:
+	//   "IDENTITY_STATE_UNSPECIFIED" - Default service identity state. This
+	// value is used if the state is
+	// omitted.
+	//   "ACTIVE" - Service identity has been created and can be used.
+	State string `json:"state,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Identity") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Identity") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *GetServiceIdentityResponse) MarshalJSON() ([]byte, error) {
+	type NoMethod GetServiceIdentityResponse
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 // GoogleApiService: `Service` is the root object of Google service
 // configuration schema. It
 // describes basic information about a service, such as the name and
@@ -2129,6 +2176,86 @@ type GoogleApiServiceusageV1ServiceConfig struct {
 
 func (s *GoogleApiServiceusageV1ServiceConfig) MarshalJSON() ([]byte, error) {
 	type NoMethod GoogleApiServiceusageV1ServiceConfig
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// GoogleApiServiceusageV1beta1GetServiceIdentityResponse: Response
+// message for getting service identity.
+type GoogleApiServiceusageV1beta1GetServiceIdentityResponse struct {
+	// Identity: Service identity that service producer can use to access
+	// consumer
+	// resources. If exists is true, it contains email and unique_id. If
+	// exists is
+	// false, it contains pre-constructed email and empty unique_id.
+	Identity *GoogleApiServiceusageV1beta1ServiceIdentity `json:"identity,omitempty"`
+
+	// State: Service identity state.
+	//
+	// Possible values:
+	//   "IDENTITY_STATE_UNSPECIFIED" - Default service identity state. This
+	// value is used if the state is
+	// omitted.
+	//   "ACTIVE" - Service identity has been created and can be used.
+	State string `json:"state,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Identity") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Identity") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *GoogleApiServiceusageV1beta1GetServiceIdentityResponse) MarshalJSON() ([]byte, error) {
+	type NoMethod GoogleApiServiceusageV1beta1GetServiceIdentityResponse
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// GoogleApiServiceusageV1beta1ServiceIdentity: Service identity for a
+// service. This is the identity that service producer
+// should use to access consumer resources.
+type GoogleApiServiceusageV1beta1ServiceIdentity struct {
+	// Email: The email address of the service account that a service
+	// producer would use
+	// to access consumer resources.
+	Email string `json:"email,omitempty"`
+
+	// UniqueId: The unique and stable id of the service
+	// account.
+	// https://cloud.google.com/iam/reference/rest/v1/projects.servi
+	// ceAccounts#ServiceAccount
+	UniqueId string `json:"uniqueId,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Email") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Email") to include in API
+	// requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *GoogleApiServiceusageV1beta1ServiceIdentity) MarshalJSON() ([]byte, error) {
+	type NoMethod GoogleApiServiceusageV1beta1ServiceIdentity
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -3063,6 +3190,15 @@ type MetricDescriptor struct {
 	// points.
 	MetricKind string `json:"metricKind,omitempty"`
 
+	// MonitoredResourceTypes: Read-only. If present, then a time
+	// series, which is identified partially by
+	// a metric type and a MonitoredResourceDescriptor, that is
+	// associated
+	// with this metric type can only be associated with one of the
+	// monitored
+	// resource types listed here.
+	MonitoredResourceTypes []string `json:"monitoredResourceTypes,omitempty"`
+
 	// Name: The resource name of the metric descriptor.
 	Name string `json:"name,omitempty"`
 
@@ -3200,9 +3336,8 @@ type MetricDescriptorMetadata struct {
 	// data loss due to errors.
 	IngestDelay string `json:"ingestDelay,omitempty"`
 
-	// LaunchStage: Deprecated. Please use the MetricDescriptor.launch_stage
+	// LaunchStage: Deprecated. Must use the MetricDescriptor.launch_stage
 	// instead.
-	// The launch stage of the metric definition.
 	//
 	// Possible values:
 	//   "LAUNCH_STAGE_UNSPECIFIED" - Do not use this default value.
@@ -4110,13 +4245,8 @@ type QuotaLimit struct {
 	// display name generated from the configuration.
 	DisplayName string `json:"displayName,omitempty"`
 
-	// Duration: Duration of this limit in textual notation. Example:
-	// "100s", "24h", "1d".
-	// For duration longer than a day, only multiple of days is supported.
-	// We
-	// support only "100s" and "1d" for now. Additional support will be
-	// added in
-	// the future. "0" indicates indefinite duration.
+	// Duration: Duration of this limit in textual notation. Must be "100s"
+	// or "1d".
 	//
 	// Used by group-based quotas only.
 	Duration string `json:"duration,omitempty"`
@@ -4285,6 +4415,44 @@ type QuotaOverride struct {
 
 func (s *QuotaOverride) MarshalJSON() ([]byte, error) {
 	type NoMethod QuotaOverride
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// ServiceIdentity: Service identity for a service. This is the identity
+// that service producer
+// should use to access consumer resources.
+type ServiceIdentity struct {
+	// Email: The email address of the service account that a service
+	// producer would use
+	// to access consumer resources.
+	Email string `json:"email,omitempty"`
+
+	// UniqueId: The unique and stable id of the service
+	// account.
+	// https://cloud.google.com/iam/reference/rest/v1/projects.servi
+	// ceAccounts#ServiceAccount
+	UniqueId string `json:"uniqueId,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Email") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Email") to include in API
+	// requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *ServiceIdentity) MarshalJSON() ([]byte, error) {
+	type NoMethod ServiceIdentity
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -4801,6 +4969,7 @@ func (c *OperationsCancelCall) Header() http.Header {
 
 func (c *OperationsCancelCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -4945,6 +5114,7 @@ func (c *OperationsDeleteCall) Header() http.Header {
 
 func (c *OperationsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5090,6 +5260,7 @@ func (c *OperationsGetCall) Header() http.Header {
 
 func (c *OperationsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5276,6 +5447,7 @@ func (c *OperationsListCall) Header() http.Header {
 
 func (c *OperationsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5410,6 +5582,7 @@ type ServicesBatchEnableCall struct {
 // atomic: if enabling
 // any service fails, then the entire batch fails, and no state changes
 // occur.
+// To enable a single service, use the `EnableService` method instead.
 func (r *ServicesService) BatchEnable(parent string, batchenableservicesrequest *BatchEnableServicesRequest) *ServicesBatchEnableCall {
 	c := &ServicesBatchEnableCall{s: r.s, urlParams_: make(gensupport.URLParams)}
 	c.parent = parent
@@ -5444,6 +5617,7 @@ func (c *ServicesBatchEnableCall) Header() http.Header {
 
 func (c *ServicesBatchEnableCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5507,7 +5681,7 @@ func (c *ServicesBatchEnableCall) Do(opts ...googleapi.CallOption) (*Operation, 
 	}
 	return ret, nil
 	// {
-	//   "description": "Enable multiple services on a project. The operation is atomic: if enabling\nany service fails, then the entire batch fails, and no state changes occur.",
+	//   "description": "Enable multiple services on a project. The operation is atomic: if enabling\nany service fails, then the entire batch fails, and no state changes occur.\nTo enable a single service, use the `EnableService` method instead.",
 	//   "flatPath": "v1/{v1Id}/{v1Id1}/services:batchEnable",
 	//   "httpMethod": "POST",
 	//   "id": "serviceusage.services.batchEnable",
@@ -5594,6 +5768,7 @@ func (c *ServicesDisableCall) Header() http.Header {
 
 func (c *ServicesDisableCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5734,6 +5909,7 @@ func (c *ServicesEnableCall) Header() http.Header {
 
 func (c *ServicesEnableCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5884,6 +6060,7 @@ func (c *ServicesGetCall) Header() http.Header {
 
 func (c *ServicesGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6064,6 +6241,7 @@ func (c *ServicesListCall) Header() http.Header {
 
 func (c *ServicesListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}

@@ -53,8 +53,8 @@ import (
 	"strconv"
 	"strings"
 
-	gensupport "google.golang.org/api/gensupport"
 	googleapi "google.golang.org/api/googleapi"
+	gensupport "google.golang.org/api/internal/gensupport"
 	option "google.golang.org/api/option"
 	htransport "google.golang.org/api/transport/http"
 )
@@ -154,7 +154,9 @@ type AllocateInfo struct {
 	// time
 	// window, the caller can choose to ignore these labels in the
 	// requests
-	// to achieve better client-side cache hits and quota aggregation.
+	// to achieve better client-side cache hits and quota aggregation for
+	// rate
+	// quota. This field is not populated for allocation quota checks.
 	UnusedArguments []string `json:"unusedArguments,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "UnusedArguments") to
@@ -519,6 +521,11 @@ type AuthenticationInfo struct {
 	// fail
 	// with a "permission denied" error.
 	PrincipalEmail string `json:"principalEmail,omitempty"`
+
+	// PrincipalSubject: String representation of identity of requesting
+	// party.
+	// Populated for both first and third party identities.
+	PrincipalSubject string `json:"principalSubject,omitempty"`
 
 	// ServiceAccountDelegationInfo: Identity delegation history of an
 	// authenticated service account that makes
@@ -987,6 +994,10 @@ type Distribution struct {
 	// Count: The total number of samples in the distribution. Must be >= 0.
 	Count int64 `json:"count,omitempty,string"`
 
+	// Exemplars: Example points. Must be in increasing order of `value`
+	// field.
+	Exemplars []*Exemplar `json:"exemplars,omitempty"`
+
 	// ExplicitBuckets: Buckets with arbitrary user-provided width.
 	ExplicitBuckets *ExplicitBuckets `json:"explicitBuckets,omitempty"`
 
@@ -1056,6 +1067,76 @@ func (s *Distribution) UnmarshalJSON(data []byte) error {
 	s.Mean = float64(s1.Mean)
 	s.Minimum = float64(s1.Minimum)
 	s.SumOfSquaredDeviation = float64(s1.SumOfSquaredDeviation)
+	return nil
+}
+
+// Exemplar: Exemplars are example points that may be used to annotate
+// aggregated
+// distribution values. They are metadata that gives information about
+// a
+// particular value added to a Distribution bucket, such as a trace ID
+// that
+// was active when a value was added. They may contain further
+// information,
+// such as a example values and timestamps, origin, etc.
+type Exemplar struct {
+	// Attachments: Contextual information about the example value. Examples
+	// are:
+	//
+	//   Trace: type.googleapis.com/google.monitoring.v3.SpanContext
+	//
+	//   Literal string: type.googleapis.com/google.protobuf.StringValue
+	//
+	//   Labels dropped during aggregation:
+	//     type.googleapis.com/google.monitoring.v3.DroppedLabels
+	//
+	// There may be only a single attachment of any given message type in
+	// a
+	// single exemplar, and this is enforced by the system.
+	Attachments []googleapi.RawMessage `json:"attachments,omitempty"`
+
+	// Timestamp: The observation (sampling) time of the above value.
+	Timestamp string `json:"timestamp,omitempty"`
+
+	// Value: Value of the exemplar point. This value determines to which
+	// bucket the
+	// exemplar belongs.
+	Value float64 `json:"value,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Attachments") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Attachments") to include
+	// in API requests with the JSON null value. By default, fields with
+	// empty values are omitted from API requests. However, any field with
+	// an empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *Exemplar) MarshalJSON() ([]byte, error) {
+	type NoMethod Exemplar
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+func (s *Exemplar) UnmarshalJSON(data []byte) error {
+	type NoMethod Exemplar
+	var s1 struct {
+		Value gensupport.JSONFloat64 `json:"value"`
+		*NoMethod
+	}
+	s1.NoMethod = (*NoMethod)(s)
+	if err := json.Unmarshal(data, &s1); err != nil {
+		return err
+	}
+	s.Value = float64(s1.Value)
 	return nil
 }
 
@@ -1419,6 +1500,11 @@ type LogEntry struct {
 	//   "EMERGENCY" - (800) One or more systems are unusable.
 	Severity string `json:"severity,omitempty"`
 
+	// SourceLocation: Optional. Source code location information associated
+	// with the log entry,
+	// if any.
+	SourceLocation *LogEntrySourceLocation `json:"sourceLocation,omitempty"`
+
 	// StructPayload: The log entry payload, represented as a structure
 	// that
 	// is expressed as a JSON object.
@@ -1510,6 +1596,56 @@ type LogEntryOperation struct {
 
 func (s *LogEntryOperation) MarshalJSON() ([]byte, error) {
 	type NoMethod LogEntryOperation
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// LogEntrySourceLocation: Additional information about the source code
+// location that produced the log
+// entry.
+type LogEntrySourceLocation struct {
+	// File: Optional. Source file name. Depending on the runtime
+	// environment, this
+	// might be a simple name or a fully-qualified name.
+	File string `json:"file,omitempty"`
+
+	// Function: Optional. Human-readable name of the function or method
+	// being invoked, with
+	// optional context such as the class or package name. This information
+	// may be
+	// used in contexts such as the logs viewer, where a file and line
+	// number are
+	// less meaningful. The format can vary by language. For
+	// example:
+	// `qual.if.ied.Class.method` (Java), `dir/package.func` (Go),
+	// `function`
+	// (Python).
+	Function string `json:"function,omitempty"`
+
+	// Line: Optional. Line within the source file. 1-based; 0 indicates no
+	// line number
+	// available.
+	Line int64 `json:"line,omitempty,string"`
+
+	// ForceSendFields is a list of field names (e.g. "File") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "File") to include in API
+	// requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *LogEntrySourceLocation) MarshalJSON() ([]byte, error) {
+	type NoMethod LogEntrySourceLocation
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -1781,17 +1917,6 @@ type Operation struct {
 	// check will be performed.
 	QuotaProperties *QuotaProperties `json:"quotaProperties,omitempty"`
 
-	// ResourceContainer: DO NOT USE. This field is deprecated, use
-	// "resources" field instead.
-	// The resource name of the parent of a resource in the resource
-	// hierarchy.
-	//
-	// This can be in one of the following formats:
-	//     - “projects/<project-id or project-number>”
-	//     - “folders/<folder-id>”
-	//     - “organizations/<organization-id>”
-	ResourceContainer string `json:"resourceContainer,omitempty"`
-
 	// Resources: The resources that are involved in the operation.
 	// The maximum supported number of entries in this field is 100.
 	Resources []*ResourceInfo `json:"resources,omitempty"`
@@ -1833,9 +1958,8 @@ func (s *Operation) MarshalJSON() ([]byte, error) {
 // network request.
 // The node can be either a service or an application that sends,
 // forwards,
-// or receives the request. Service peers should fill in the
-// `service`,
-// `principal`, and `labels` as appropriate.
+// or receives the request. Service peers should fill in
+// `principal` and `labels` as appropriate.
 type Peer struct {
 	// Ip: The IP address of the peer.
 	Ip string `json:"ip,omitempty"`
@@ -1858,11 +1982,6 @@ type Peer struct {
 	// the
 	// physical location where this peer is running.
 	RegionCode string `json:"regionCode,omitempty"`
-
-	// Service: The canonical service name of the peer.
-	//
-	// NOTE: different systems may have different service naming schemes.
-	Service string `json:"service,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "Ip") to
 	// unconditionally include in API requests. By default, fields with
@@ -2067,13 +2186,15 @@ type QuotaOperation struct {
 	// idempotency in
 	// case of retries.
 	//
-	// UUID version 4 is recommended, though not required. In scenarios
-	// where an
-	// operation is computed from existing information and an idempotent id
+	// In order to ensure best performance and latency in the Quota
+	// backends,
+	// operation_ids are optimally associated with time, so that
+	// related
+	// operations can be accessed fast in storage. For this reason,
+	// the
+	// recommended token for services that intend to operate at a high QPS
 	// is
-	// desirable for deduplication purpose, UUID version 5 is recommended.
-	// See
-	// RFC 4122 for details.
+	// Unix time in nanos + UUID
 	OperationId string `json:"operationId,omitempty"`
 
 	// QuotaMetrics: Represents information about this operation. Each
@@ -2397,9 +2518,6 @@ type Request struct {
 	// Derived from the HTTP request `Authorization` header or equivalent.
 	Auth *Auth `json:"auth,omitempty"`
 
-	// Fragment: The HTTP URL fragment. No URL decoding is performed.
-	Fragment string `json:"fragment,omitempty"`
-
 	// Headers: The HTTP request headers. If multiple headers share the same
 	// key, they
 	// must be merged according to the HTTP spec. All header keys must
@@ -2607,9 +2725,11 @@ type Resource struct {
 	// hostname that actually serves the request.
 	Service string `json:"service,omitempty"`
 
-	// Type: The type of the resource. The scheme is platform-specific
+	// Type: The type of the resource. The syntax is platform-specific
 	// because
 	// different platforms define their resources differently.
+	//
+	// For Google APIs, the type format must be "{service}/{kind}".
 	Type string `json:"type,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "Labels") to
@@ -2770,81 +2890,14 @@ func (s *ServiceAccountDelegationInfo) MarshalJSON() ([]byte, error) {
 // suitable for
 // different programming environments, including REST APIs and RPC APIs.
 // It is
-// used by [gRPC](https://github.com/grpc). The error model is designed
-// to be:
+// used by [gRPC](https://github.com/grpc). Each `Status` message
+// contains
+// three pieces of data: error code, error message, and error
+// details.
 //
-// - Simple to use and understand for most users
-// - Flexible enough to meet unexpected needs
-//
-// # Overview
-//
-// The `Status` message contains three pieces of data: error code,
-// error
-// message, and error details. The error code should be an enum value
-// of
-// google.rpc.Code, but it may accept additional error codes if needed.
-// The
-// error message should be a developer-facing English message that
-// helps
-// developers *understand* and *resolve* the error. If a localized
-// user-facing
-// error message is needed, put the localized message in the error
-// details or
-// localize it in the client. The optional error details may contain
-// arbitrary
-// information about the error. There is a predefined set of error
-// detail types
-// in the package `google.rpc` that can be used for common error
-// conditions.
-//
-// # Language mapping
-//
-// The `Status` message is the logical representation of the error
-// model, but it
-// is not necessarily the actual wire format. When the `Status` message
-// is
-// exposed in different client libraries and different wire protocols,
-// it can be
-// mapped differently. For example, it will likely be mapped to some
-// exceptions
-// in Java, but more likely mapped to some error codes in C.
-//
-// # Other uses
-//
-// The error model and the `Status` message can be used in a variety
-// of
-// environments, either with or without APIs, to provide a
-// consistent developer experience across different
-// environments.
-//
-// Example uses of this error model include:
-//
-// - Partial errors. If a service needs to return partial errors to the
-// client,
-//     it may embed the `Status` in the normal response to indicate the
-// partial
-//     errors.
-//
-// - Workflow errors. A typical workflow has multiple steps. Each step
-// may
-//     have a `Status` message for error reporting.
-//
-// - Batch operations. If a client uses batch request and batch
-// response, the
-//     `Status` message should be used directly inside batch response,
-// one for
-//     each error sub-response.
-//
-// - Asynchronous operations. If an API call embeds asynchronous
-// operation
-//     results in its response, the status of those operations should
-// be
-//     represented directly using the `Status` message.
-//
-// - Logging. If some API errors are stored in logs, the message
-// `Status` could
-//     be used directly after any stripping needed for security/privacy
-// reasons.
+// You can find out more about this error model and how to work with it
+// in the
+// [API Design Guide](https://cloud.google.com/apis/design/errors).
 type Status struct {
 	// Code: The status code, which should be an enum value of
 	// google.rpc.Code.
@@ -2975,6 +3028,7 @@ func (c *ServicesAllocateQuotaCall) Header() http.Header {
 
 func (c *ServicesAllocateQuotaCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -3136,6 +3190,7 @@ func (c *ServicesCheckCall) Header() http.Header {
 
 func (c *ServicesCheckCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -3294,6 +3349,7 @@ func (c *ServicesReportCall) Header() http.Header {
 
 func (c *ServicesReportCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}

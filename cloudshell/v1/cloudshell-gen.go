@@ -49,8 +49,8 @@ import (
 	"strconv"
 	"strings"
 
-	gensupport "google.golang.org/api/gensupport"
 	googleapi "google.golang.org/api/googleapi"
+	gensupport "google.golang.org/api/internal/gensupport"
 	option "google.golang.org/api/option"
 	htransport "google.golang.org/api/transport/http"
 )
@@ -175,8 +175,9 @@ type Environment struct {
 	// "gcr.io/dev-con/cloud-devshell:latest".
 	DockerImage string `json:"dockerImage,omitempty"`
 
-	// Id: Output only. The environment's identifier, which is always
-	// "default".
+	// Id: Output only. The environment's identifier, unique among the
+	// user's
+	// environments.
 	Id string `json:"id,omitempty"`
 
 	// Name: Output only. Full name of this resource, in the
@@ -200,6 +201,18 @@ type Environment struct {
 	// DeletePublicKey
 	// methods.
 	PublicKeys []*PublicKey `json:"publicKeys,omitempty"`
+
+	// Size: Indicates the size of the backing VM running the environment.
+	// If set to
+	// something other than DEFAULT, it will be reverted to the default VM
+	// size
+	// after vm_size_expire_time.
+	//
+	// Possible values:
+	//   "VM_SIZE_UNSPECIFIED" - The VM size is unknown.
+	//   "DEFAULT" - The default VM size.
+	//   "BOOSTED" - The boosted VM size.
+	Size string `json:"size,omitempty"`
 
 	// SshHost: Output only. Host to which clients can connect to initiate
 	// SSH sessions
@@ -232,6 +245,21 @@ type Environment struct {
 	// inactivity or
 	// if another environment is started.
 	State string `json:"state,omitempty"`
+
+	// VmSizeExpireTime: Output only. The time when the Environment will
+	// expire back to the default
+	// VM size.
+	VmSizeExpireTime string `json:"vmSizeExpireTime,omitempty"`
+
+	// WebHost: Output only. Host to which clients can connect to initiate
+	// HTTPS or WSS
+	// connections with the environment.
+	WebHost string `json:"webHost,omitempty"`
+
+	// WebPorts: Output only. Ports to which clients can connect to initiate
+	// HTTPS or WSS
+	// connections with the environment.
+	WebPorts []int64 `json:"webPorts,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "DockerImage") to
 	// unconditionally include in API requests. By default, fields with
@@ -505,81 +533,14 @@ func (s *StartEnvironmentResponse) MarshalJSON() ([]byte, error) {
 // suitable for
 // different programming environments, including REST APIs and RPC APIs.
 // It is
-// used by [gRPC](https://github.com/grpc). The error model is designed
-// to be:
+// used by [gRPC](https://github.com/grpc). Each `Status` message
+// contains
+// three pieces of data: error code, error message, and error
+// details.
 //
-// - Simple to use and understand for most users
-// - Flexible enough to meet unexpected needs
-//
-// # Overview
-//
-// The `Status` message contains three pieces of data: error code,
-// error
-// message, and error details. The error code should be an enum value
-// of
-// google.rpc.Code, but it may accept additional error codes if needed.
-// The
-// error message should be a developer-facing English message that
-// helps
-// developers *understand* and *resolve* the error. If a localized
-// user-facing
-// error message is needed, put the localized message in the error
-// details or
-// localize it in the client. The optional error details may contain
-// arbitrary
-// information about the error. There is a predefined set of error
-// detail types
-// in the package `google.rpc` that can be used for common error
-// conditions.
-//
-// # Language mapping
-//
-// The `Status` message is the logical representation of the error
-// model, but it
-// is not necessarily the actual wire format. When the `Status` message
-// is
-// exposed in different client libraries and different wire protocols,
-// it can be
-// mapped differently. For example, it will likely be mapped to some
-// exceptions
-// in Java, but more likely mapped to some error codes in C.
-//
-// # Other uses
-//
-// The error model and the `Status` message can be used in a variety
-// of
-// environments, either with or without APIs, to provide a
-// consistent developer experience across different
-// environments.
-//
-// Example uses of this error model include:
-//
-// - Partial errors. If a service needs to return partial errors to the
-// client,
-//     it may embed the `Status` in the normal response to indicate the
-// partial
-//     errors.
-//
-// - Workflow errors. A typical workflow has multiple steps. Each step
-// may
-//     have a `Status` message for error reporting.
-//
-// - Batch operations. If a client uses batch request and batch
-// response, the
-//     `Status` message should be used directly inside batch response,
-// one for
-//     each error sub-response.
-//
-// - Asynchronous operations. If an API call embeds asynchronous
-// operation
-//     results in its response, the status of those operations should
-// be
-//     represented directly using the `Status` message.
-//
-// - Logging. If some API errors are stored in logs, the message
-// `Status` could
-//     be used directly after any stripping needed for security/privacy
-// reasons.
+// You can find out more about this error model and how to work with it
+// in the
+// [API Design Guide](https://cloud.google.com/apis/design/errors).
 type Status struct {
 	// Code: The status code, which should be an enum value of
 	// google.rpc.Code.
@@ -683,6 +644,7 @@ func (c *OperationsCancelCall) Header() http.Header {
 
 func (c *OperationsCancelCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -826,6 +788,7 @@ func (c *OperationsDeleteCall) Header() http.Header {
 
 func (c *OperationsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -970,6 +933,7 @@ func (c *OperationsGetCall) Header() http.Header {
 
 func (c *OperationsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -1150,6 +1114,7 @@ func (c *OperationsListCall) Header() http.Header {
 
 func (c *OperationsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}

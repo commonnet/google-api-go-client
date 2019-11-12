@@ -53,8 +53,8 @@ import (
 	"strconv"
 	"strings"
 
-	gensupport "google.golang.org/api/gensupport"
 	googleapi "google.golang.org/api/googleapi"
+	gensupport "google.golang.org/api/internal/gensupport"
 	option "google.golang.org/api/option"
 	htransport "google.golang.org/api/transport/http"
 )
@@ -288,7 +288,7 @@ func (s *Attributes) MarshalJSON() ([]byte, error) {
 // BatchWriteSpansRequest: The request message for the `BatchWriteSpans`
 // method.
 type BatchWriteSpansRequest struct {
-	// Spans: A list of new spans. The span names must not match
+	// Spans: Required. A list of new spans. The span names must not match
 	// existing
 	// spans, or the results are undefined.
 	Spans []*Span `json:"spans,omitempty"`
@@ -527,8 +527,8 @@ type Span struct {
 	// span.
 	Attributes *Attributes `json:"attributes,omitempty"`
 
-	// ChildSpanCount: An optional number of child spans that were generated
-	// while this span
+	// ChildSpanCount: Optional. The number of child spans that were
+	// generated while this span
 	// was active. If set, allows implementation to detect missing child
 	// spans.
 	ChildSpanCount int64 `json:"childSpanCount,omitempty"`
@@ -573,7 +573,7 @@ type Span struct {
 	// then this field must be empty.
 	ParentSpanId string `json:"parentSpanId,omitempty"`
 
-	// SameProcessAsParentSpan: (Optional) Set this parameter to indicate
+	// SameProcessAsParentSpan: Optional. Set this parameter to indicate
 	// whether this span is in
 	// the same process as its parent. If you do not set this
 	// parameter,
@@ -585,6 +585,40 @@ type Span struct {
 	// SpanId: The [SPAN_ID] portion of the span's resource name.
 	SpanId string `json:"spanId,omitempty"`
 
+	// SpanKind: Distinguishes between spans generated in a particular
+	// context. For example,
+	// two spans with the same name may be distinguished using `CLIENT`
+	// (caller)
+	// and `SERVER` (callee) to identify an RPC call.
+	//
+	// Possible values:
+	//   "SPAN_KIND_UNSPECIFIED" - Unspecified. Do NOT use as
+	// default.
+	// Implementations MAY assume SpanKind.INTERNAL to be default.
+	//   "INTERNAL" - Indicates that the span is used internally. Default
+	// value.
+	//   "SERVER" - Indicates that the span covers server-side handling of
+	// an RPC or other
+	// remote network request.
+	//   "CLIENT" - Indicates that the span covers the client-side wrapper
+	// around an RPC or
+	// other remote request.
+	//   "PRODUCER" - Indicates that the span describes producer sending a
+	// message to a broker.
+	// Unlike client and  server, there is no direct critical path
+	// latency
+	// relationship between producer and consumer spans (e.g. publishing
+	// a
+	// message to a pubsub service).
+	//   "CONSUMER" - Indicates that the span describes consumer recieving a
+	// message from a
+	// broker. Unlike client and  server, there is no direct critical
+	// path
+	// latency relationship between producer and consumer spans (e.g.
+	// receiving
+	// a message from a pubsub service subscription).
+	SpanKind string `json:"spanKind,omitempty"`
+
 	// StackTrace: Stack trace captured at the start of the span.
 	StackTrace *StackTrace `json:"stackTrace,omitempty"`
 
@@ -595,7 +629,7 @@ type Span struct {
 	// is the time when the server's application handler starts running.
 	StartTime string `json:"startTime,omitempty"`
 
-	// Status: An optional final status for this span.
+	// Status: Optional. The final status for this span.
 	Status *Status `json:"status,omitempty"`
 
 	// TimeEvents: A set of time events. You can have up to 32 annotations
@@ -769,81 +803,14 @@ func (s *StackTrace) MarshalJSON() ([]byte, error) {
 // suitable for
 // different programming environments, including REST APIs and RPC APIs.
 // It is
-// used by [gRPC](https://github.com/grpc). The error model is designed
-// to be:
+// used by [gRPC](https://github.com/grpc). Each `Status` message
+// contains
+// three pieces of data: error code, error message, and error
+// details.
 //
-// - Simple to use and understand for most users
-// - Flexible enough to meet unexpected needs
-//
-// # Overview
-//
-// The `Status` message contains three pieces of data: error code,
-// error
-// message, and error details. The error code should be an enum value
-// of
-// google.rpc.Code, but it may accept additional error codes if needed.
-// The
-// error message should be a developer-facing English message that
-// helps
-// developers *understand* and *resolve* the error. If a localized
-// user-facing
-// error message is needed, put the localized message in the error
-// details or
-// localize it in the client. The optional error details may contain
-// arbitrary
-// information about the error. There is a predefined set of error
-// detail types
-// in the package `google.rpc` that can be used for common error
-// conditions.
-//
-// # Language mapping
-//
-// The `Status` message is the logical representation of the error
-// model, but it
-// is not necessarily the actual wire format. When the `Status` message
-// is
-// exposed in different client libraries and different wire protocols,
-// it can be
-// mapped differently. For example, it will likely be mapped to some
-// exceptions
-// in Java, but more likely mapped to some error codes in C.
-//
-// # Other uses
-//
-// The error model and the `Status` message can be used in a variety
-// of
-// environments, either with or without APIs, to provide a
-// consistent developer experience across different
-// environments.
-//
-// Example uses of this error model include:
-//
-// - Partial errors. If a service needs to return partial errors to the
-// client,
-//     it may embed the `Status` in the normal response to indicate the
-// partial
-//     errors.
-//
-// - Workflow errors. A typical workflow has multiple steps. Each step
-// may
-//     have a `Status` message for error reporting.
-//
-// - Batch operations. If a client uses batch request and batch
-// response, the
-//     `Status` message should be used directly inside batch response,
-// one for
-//     each error sub-response.
-//
-// - Asynchronous operations. If an API call embeds asynchronous
-// operation
-//     results in its response, the status of those operations should
-// be
-//     represented directly using the `Status` message.
-//
-// - Logging. If some API errors are stored in logs, the message
-// `Status` could
-//     be used directly after any stripping needed for security/privacy
-// reasons.
+// You can find out more about this error model and how to work with it
+// in the
+// [API Design Guide](https://cloud.google.com/apis/design/errors).
 type Status struct {
 	// Code: The status code, which should be an enum value of
 	// google.rpc.Code.
@@ -1055,6 +1022,7 @@ func (c *ProjectsTracesBatchWriteCall) Header() http.Header {
 
 func (c *ProjectsTracesBatchWriteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -1195,6 +1163,7 @@ func (c *ProjectsTracesSpansCreateSpanCall) Header() http.Header {
 
 func (c *ProjectsTracesSpansCreateSpanCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}

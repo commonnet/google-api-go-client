@@ -1,16 +1,6 @@
-// Copyright 2019 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Copyright 2019 Google LLC.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 
 package transport_test
 
@@ -29,7 +19,7 @@ func Example_applicationDefaultCredentials() {
 	// Default Creds as specified at https://godoc.org/golang.org/x/oauth2/google#FindDefaultCredentials.
 	//
 	// Note: Given the same set of options, transport.NewHTTPClient and
-	// transport.NewGRPCClient use the same credentials.
+	// transport.DialGRPC use the same credentials.
 	c, _, err := transport.NewHTTPClient(ctx)
 	if err != nil {
 		log.Fatal(err)
@@ -40,10 +30,10 @@ func Example_applicationDefaultCredentials() {
 func Example_withCredentialsFile() {
 	ctx := context.Background()
 
-	// Download service account creds per https://cloud.google.com/docs/authentication/end-user.
+	// Download service account creds per https://cloud.google.com/docs/authentication/production.
 	//
 	// Note: Given the same set of options, transport.NewHTTPClient and
-	// transport.NewGRPCClient use the same credentials.
+	// transport.DialGRPC use the same credentials.
 	c, _, err := transport.NewHTTPClient(ctx, option.WithCredentialsFile("/path/to/service-account-creds.json"))
 	if err != nil {
 		log.Fatal(err)

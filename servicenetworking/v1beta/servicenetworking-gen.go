@@ -53,8 +53,8 @@ import (
 	"strconv"
 	"strings"
 
-	gensupport "google.golang.org/api/gensupport"
 	googleapi "google.golang.org/api/googleapi"
+	gensupport "google.golang.org/api/internal/gensupport"
 	option "google.golang.org/api/option"
 	htransport "google.golang.org/api/transport/http"
 )
@@ -890,9 +890,8 @@ type Connection struct {
 	// service consumer's VPC network.
 	Network string `json:"network,omitempty"`
 
-	// Peering: Output only.
-	// The name of the VPC Network Peering connection that was created by
-	// the
+	// Peering: Output only. The name of the VPC Network Peering connection
+	// that was created by the
 	// service producer.
 	Peering string `json:"peering,omitempty"`
 
@@ -906,9 +905,8 @@ type Connection struct {
 	// producer subnetworks.
 	ReservedPeeringRanges []string `json:"reservedPeeringRanges,omitempty"`
 
-	// Service: Output only.
-	// The name of the peering service that's associated with this
-	// connection, in
+	// Service: Output only. The name of the peering service that's
+	// associated with this connection, in
 	// the following format: `services/{service name}`.
 	Service string `json:"service,omitempty"`
 
@@ -1307,6 +1305,15 @@ type Documentation struct {
 	// **NOTE:** All service configuration rules follow "last one wins"
 	// order.
 	Rules []*DocumentationRule `json:"rules,omitempty"`
+
+	// ServiceRootUrl: Specifies the service root url if the default one
+	// (the service name
+	// from the yaml file) is not suitable. This can be seen in any
+	// fully
+	// specified service urls as well as sections that show a base that
+	// other
+	// urls are relative to.
+	ServiceRootUrl string `json:"serviceRootUrl,omitempty"`
 
 	// Summary: A short summary of what the service does. Can only be
 	// provided by
@@ -2574,6 +2581,15 @@ type MetricDescriptor struct {
 	// points.
 	MetricKind string `json:"metricKind,omitempty"`
 
+	// MonitoredResourceTypes: Read-only. If present, then a time
+	// series, which is identified partially by
+	// a metric type and a MonitoredResourceDescriptor, that is
+	// associated
+	// with this metric type can only be associated with one of the
+	// monitored
+	// resource types listed here.
+	MonitoredResourceTypes []string `json:"monitoredResourceTypes,omitempty"`
+
 	// Name: The resource name of the metric descriptor.
 	Name string `json:"name,omitempty"`
 
@@ -2711,9 +2727,8 @@ type MetricDescriptorMetadata struct {
 	// data loss due to errors.
 	IngestDelay string `json:"ingestDelay,omitempty"`
 
-	// LaunchStage: Deprecated. Please use the MetricDescriptor.launch_stage
+	// LaunchStage: Deprecated. Must use the MetricDescriptor.launch_stage
 	// instead.
-	// The launch stage of the metric definition.
 	//
 	// Possible values:
 	//   "LAUNCH_STAGE_UNSPECIFIED" - Do not use this default value.
@@ -3590,13 +3605,8 @@ type QuotaLimit struct {
 	// display name generated from the configuration.
 	DisplayName string `json:"displayName,omitempty"`
 
-	// Duration: Duration of this limit in textual notation. Example:
-	// "100s", "24h", "1d".
-	// For duration longer than a day, only multiple of days is supported.
-	// We
-	// support only "100s" and "1d" for now. Additional support will be
-	// added in
-	// the future. "0" indicates indefinite duration.
+	// Duration: Duration of this limit in textual notation. Must be "100s"
+	// or "1d".
 	//
 	// Used by group-based quotas only.
 	Duration string `json:"duration,omitempty"`
@@ -4519,6 +4529,7 @@ func (c *OperationsGetCall) Header() http.Header {
 
 func (c *OperationsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -4670,6 +4681,7 @@ func (c *ServicesAddSubnetworkCall) Header() http.Header {
 
 func (c *ServicesAddSubnetworkCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -4821,6 +4833,7 @@ func (c *ServicesSearchRangeCall) Header() http.Header {
 
 func (c *ServicesSearchRangeCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -4981,6 +4994,7 @@ func (c *ServicesUpdateConnectionsCall) Header() http.Header {
 
 func (c *ServicesUpdateConnectionsCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5148,6 +5162,7 @@ func (c *ServicesConnectionsCreateCall) Header() http.Header {
 
 func (c *ServicesConnectionsCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5316,6 +5331,7 @@ func (c *ServicesConnectionsListCall) Header() http.Header {
 
 func (c *ServicesConnectionsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191104")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
